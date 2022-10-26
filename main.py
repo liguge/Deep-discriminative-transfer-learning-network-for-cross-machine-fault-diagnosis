@@ -9,16 +9,7 @@ from sklearn.utils import shuffle
 from torch.utils import data as da
 from torchmetrics import MeanMetric, Accuracy
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-metric_accuracy_1 = Accuracy().cuda()
-metric_accuracy_2 = Accuracy().cuda()
-metric_mean_1 = MeanMetric().cuda()
-metric_mean_2 = MeanMetric().cuda()
-metric_mean_3 = MeanMetric().cuda()
-metric_mean_4 = MeanMetric().cuda()
-metric_mean_5 = MeanMetric().cuda()
-metric_mean_6 = MeanMetric().cuda()
-metric_mean_7 = MeanMetric().cuda()
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train')
@@ -34,20 +25,21 @@ def parse_args():
     parser.add_argument('--weight_decay', type=float, default=0.0001, help='initialization list')
     args = parser.parse_args()
     return args
-
-
 class Dataset(da.Dataset):
     def __init__(self, X, y):
         self.Data = X
         self.Label = y
+
     def __getitem__(self, index):
         txt = self.Data[index]
         label = self.Label[index]
         return txt, label
+
     def __len__(self):
         return len(self.Data)
 
-def load_data(batch_size=256):
+def load_data():
+
     source_data = np.load(args.cwru_data)
     source_label = np.load(args.cwru_label)
     target_data = np.load(args.bjtu_data)
@@ -56,13 +48,11 @@ def load_data(batch_size=256):
     target_data = MinMaxScaler().fit_transform(target_data.T).T
     source_data = np.expand_dims(source_data, axis=1).astype('float32')
     target_data = np.expand_dims(target_data, axis=1).astype('float32')
-    # X_source, Y_source = shuffle(source_data, source_label, random_state=2)
-    # X_target, Y_target = shuffle(target_data, target_label, random_state=2)
+    source_data, source_label = shuffle(source_data, source_label, random_state=2)
+    target_data, target_label = shuffle(target_data, target_label, random_state=2)
     Train_source = Dataset(source_data, source_label)
     Train_target = Dataset(target_data, target_label)
-    source_loader = da.DataLoader(Train_source, batch_size=batch_size, shuffle=True)
-    target_loader = da.DataLoader(Train_target, batch_size=batch_size, shuffle=True)
-    return source_loader, target_loader
+    return Train_source, Train_target
 
 
 ###############################################################
@@ -114,9 +104,7 @@ def _mmd2(m, n, K_XX, K_XY, K_YY, const_diagonal=False, biased=False):
 
 
 def MDA(m, n, source, target, bandwidths=[1]):
-    # if torch.is_tensor(source) == True:
-    #     source = source.detach().cpu().numpy()
-    #     target = target.detach().cpu().numpy()
+
     kernel_loss = _mix_rbf_mmd2(m, n, source, target, sigmas=bandwidths) * 100
     eps = 1e-5
     d = source.size()[1]
@@ -133,7 +121,7 @@ def MDA(m, n, source, target, bandwidths=[1]):
                 nt / n)
     # frobenius norm
     loss = torch.sqrt(torch.sum(torch.pow((cs - ct), 2)))
-    loss = loss / (4 * d * d) * 10
+    loss = loss / (4 * d * d)
 
     return float(loss) + kernel_loss
 
@@ -328,7 +316,7 @@ def train(model, epoch, source_loader, target_loader, optimizer):
     iter_target = iter(target_loader)
     num_iter = len(source_loader)
     lambd = 2 / (1 + np.exp(-10 * (epoch) / args.nepoch)) - 1
-    for i in range(1, num_iter):
+    for i in range(0, num_iter):
         source_data, source_label = next(iter_source)
         target_data, target_label = next(iter_target)
         source_data, source_label = source_data.cuda(), source_label.cuda()
@@ -344,7 +332,7 @@ def train(model, epoch, source_loader, target_loader, optimizer):
         CDA_loss = CDA(m, n, output1, source_label, output2, pre_pseudo_label)
         MDA_loss = MDA(m, n, output1, output2)
         clc_loss_step = criterion(output1, source_label)
-        loss_step = clc_loss_step + lambd * (MDA_loss + CDA_loss * 0.1)#+ pseudo_loss_step * 0.1
+        loss_step = clc_loss_step + (MDA_loss + CDA_loss * 0.1)#+ pseudo_loss_step * 0.1
         loss_step.backward()
         # nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.01208, norm_type=2)
         optimizer.step()
@@ -383,14 +371,28 @@ def train(model, epoch, source_loader, target_loader, optimizer):
 if __name__ == '__main__':
     seed_everything(42)
     args = parse_args()
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    metric_accuracy_1 = Accuracy().cuda()
+    metric_accuracy_2 = Accuracy().cuda()
+    metric_mean_1 = MeanMetric().cuda()
+    metric_mean_2 = MeanMetric().cuda()
+    metric_mean_3 = MeanMetric().cuda()
+    metric_mean_4 = MeanMetric().cuda()
+    metric_mean_5 = MeanMetric().cuda()
+    metric_mean_6 = MeanMetric().cuda()
+    metric_mean_7 = MeanMetric().cuda()
     t_test_acc = 0.0
     stop = 0
+    Train_source, Train_target = load_data()
+    g = torch.Generator()
+    source_loader = da.DataLoader(dataset=Train_source, batch_size=args.batch_size, shuffle=True, generator=g)
+    g = torch.Generator()
+    target_loader = da.DataLoader(dataset=Train_target, batch_size=args.batch_size, shuffle=True, generator=g)
     model = DDTLN().to(device)
     criterion = nn.CrossEntropyLoss()
-    source_loader, target_loader = load_data(batch_size=args.batch_size)
-    optimizer = torch.optim.RMSprop(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     model.train()
-    for epoch in range(1, args.nepoch+1):
+    for epoch in range(0, args.nepoch):
         stop += 1
         train_acc, test_acc, train_all_loss, train_loss, test_loss, target_cla_loss, source_cla_loss, cda_loss, mda_loss= train(
             model, epoch, source_loader, target_loader, optimizer)
