@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument('--nepoch', type=int, default=1000, help='max number of epoch')
     parser.add_argument('--num_classes', type=int, default=4, help='max number of epoch')
     parser.add_argument('--losses', type=list, default=[], help='initialization list')
-    parser.add_argument('--lr', type=float, default=0.0001, help='initialization list')
+    parser.add_argument('--lr', type=float, default=0.001, help='initialization list')
     parser.add_argument('--weight_decay', type=float, default=0.0001, help='initialization list')
     args = parser.parse_args()
     return args
@@ -58,8 +58,8 @@ def load_data(batch_size=256):
     target_data = np.expand_dims(target_data, axis=1).astype('float32')
     # X_source, Y_source = shuffle(source_data, source_label, random_state=2)
     # X_target, Y_target = shuffle(target_data, target_label, random_state=2)
-    Train_source = Dataset(torch.from_numpy(source_data), source_label)
-    Train_target = Dataset(torch.from_numpy(target_data), target_label)
+    Train_source = Dataset(source_data, source_label)
+    Train_target = Dataset(target_data, target_label)
     source_loader = da.DataLoader(Train_source, batch_size=batch_size, shuffle=True)
     target_loader = da.DataLoader(Train_target, batch_size=batch_size, shuffle=True)
     return source_loader, target_loader
@@ -307,6 +307,20 @@ class DDTLN(nn.Module):
         # y = self.p7_1(self.p6(y).squeeze())
         # y = self.p7_2(y)
         return x
+
+    def _weights_init(self):
+        for L in self.modules():
+            if isinstance(L, nn.Conv1d):
+                n = L.kernel_size[0] * L.out_channels
+                L.weight.data.normal_(mean=0, std=np.sqrt(2.0 / float(n)))
+            elif isinstance(L, nn.BatchNorm1d):
+                L.weight.data.fill_(1)
+                L.bias.data.fill_(0)
+            elif isinstance(L, nn.Linear):
+                L.weight.data.normal_(0, 0.01)
+                if L.bias is not None:
+                    L.bias.data.fill_(1)
+
 losses = []
 def train(model, epoch, source_loader, target_loader, optimizer):
 
@@ -329,7 +343,8 @@ def train(model, epoch, source_loader, target_loader, optimizer):
         pseudo_data, pseudo_label, pseudo_loss_step = I_Softmax(1, 0, output2, pre_pseudo_label.float()).forward()
         CDA_loss = CDA(m, n, output1, source_label, output2, pre_pseudo_label)
         MDA_loss = MDA(m, n, output1, output2)
-        loss_step = clc_loss_step + lambd * (MDA_loss + pseudo_loss_step * 0.1 + CDA_loss * 0.1)
+        clc_loss_step = criterion(output1, source_label)
+        loss_step = clc_loss_step + lambd * (MDA_loss + CDA_loss * 0.1)#+ pseudo_loss_step * 0.1
         loss_step.backward()
         # nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.01208, norm_type=2)
         optimizer.step()
