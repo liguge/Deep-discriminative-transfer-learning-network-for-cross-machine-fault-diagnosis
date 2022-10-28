@@ -2,6 +2,8 @@
 
 DownLoad Dataaet：链接: https://caiyun.139.com/m/i?085CucxvDufFx  提取码:famg 
 
+TF:  https://github.com/QinYi-team/Code/tree/master/DDTLN
+
 ```html
 @article{QIAN2023109884,
 title = {Deep discriminative transfer learning network for cross-machine fault diagnosis},
