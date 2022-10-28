@@ -4,7 +4,7 @@
  - 链接: https://caiyun.139.com/m/i?085CucxvDufFx  提取码:famg 
  - 链接: https://caiyun.139.com/m/i?085CtyyubFWt7  提取码:AAUh  
 
-### 
+### Official Materials
  - TF:  https://github.com/QinYi-team/Code/tree/master/DDTLN
  - Paper： https://github.com/QinYi-team/Code/blob/master/DDTLN/Deep%20discriminative%20transfer%20learning%20network.pdf
 
