@@ -8,6 +8,7 @@
  - TF:  https://github.com/QinYi-team/Code/tree/master/DDTLN
  - Paper： [PAPERS](https://github.com/QinYi-team/Code/blob/master/DDTLN/Deep%20discriminative%20transfer%20learning%20network.pdf)
 
+### Cited:
 ```html
 @article{QIAN2023109884,
 title = {Deep discriminative transfer learning network for cross-machine fault diagnosis},
