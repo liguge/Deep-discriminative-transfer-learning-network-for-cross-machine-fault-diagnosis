@@ -317,15 +317,13 @@ def train(model, epoch, source_loader, target_loader, optimizer):
         target_data, target_label = next(iter_target)
         source_data, source_label = source_data.cuda(), source_label.cuda()
         target_data, target_label = target_data.cuda(), target_label.cuda()
-        m = source_data.size()[0]
-        n = target_data.size()[0]
         optimizer.zero_grad()
         output1, output2 = model(source_data.float(), target_data.float())  # , output2, target_data
         data, label, clc_loss_step = I_Softmax(3, 0, output1, source_label).forward()
         pre_pseudo_label = torch.argmax(F.softmax(output2, dim=-1), dim=-1)
         pseudo_data, pseudo_label, pseudo_loss_step = I_Softmax(3, 0, output2, pre_pseudo_label).forward()
-        CDA_loss = MMD(m, n).CDA(output1, source_label, output2, pre_pseudo_label)
-        MDA_loss = MMD(m, n).MDA(output1, output2)
+        CDA_loss = MMD(source_data.size()[0], target_data.size()[0]).CDA(output1, source_label, output2, pre_pseudo_label)
+        MDA_loss = MMD(source_data.size()[0], target_data.size()[0]).MDA(output1, output2)
         loss_step = clc_loss_step + (MDA_loss + 0.1 * CDA_loss) + 0.1 * pseudo_loss_step
         loss_step.backward()
         optimizer.step()
