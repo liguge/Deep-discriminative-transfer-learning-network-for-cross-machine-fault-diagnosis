@@ -405,6 +405,9 @@ if __name__ == '__main__':
     source_loader = da.DataLoader(dataset=Train_source, batch_size=args.batch_size, shuffle=True, generator=g)
     g = torch.Generator()
     target_loader = da.DataLoader(dataset=Train_target, batch_size=args.batch_size, shuffle=True, generator=g)
+    g = torch.Generator()
+    target_loader_test = da.DataLoader(dataset=Train_target, batch_size=args.batch_size, shuffle=True, generator=g)
+
     model = DDTLN().to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
@@ -423,7 +426,7 @@ if __name__ == '__main__':
         #     test_acc = t_test_acc
         #     stop = 0
         #     torch.save(model, 'model.pkl')
-        test_acc, test_loss = test(model, target_loader)
+        test_acc, test_loss = test(model, target_loader_test)
         print(
             'Epoch{}, train_loss is {:.5f},test_loss is {:.5f}, train_accuracy is {:.5f},test_accuracy is {:.5f},train_all_loss is {:.5f},target_cla_loss is {:.5f},source_cla_loss is {:.5f},cda_loss is {:.5f},mda_loss is {:.5f}'.format(
                 epoch + 1, train_loss, test_loss, train_acc, test_acc, train_all_loss, target_cla_loss, source_cla_loss,
