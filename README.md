@@ -6,8 +6,9 @@
 
 ### Official Materials
  - TF:  https://github.com/QinYi-team/Code/tree/master/DDTLN
- - Paper： [PAPERS](https://github.com/QinYi-team/Code/blob/master/DDTLN/Deep%20discriminative%20transfer%20learning%20network.pdf)
-           [PUBLISHED PAPERS](https://doi.org/10.1016/j.ymssp.2022.109884)
+ - Paper： 
+   - [PAPERS](https://github.com/QinYi-team/Code/blob/master/DDTLN/Deep%20discriminative%20transfer%20learning%20network.pdf)
+   - [PUBLISHED PAPERS](https://doi.org/10.1016/j.ymssp.2022.109884)
 
 ### Cited:
 ```html
