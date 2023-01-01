@@ -29,5 +29,5 @@ abstract = {Many domain adaptation methods have been presented to deal with the 
  
 
 # Contact
-- Chao He
-- 22110435#bjtu.edu.cn   (please replace # by @)
+- **Chao He**
+- **22110435#bjtu.edu.cn   (please replace # by @)**
