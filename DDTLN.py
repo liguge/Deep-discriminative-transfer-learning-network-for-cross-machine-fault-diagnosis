@@ -401,12 +401,12 @@ if __name__ == '__main__':
     t_test_acc = 0.0
     stop = 0
     Train_source, Train_target = load_data()
-    g = torch.Generator()
-    source_loader = da.DataLoader(dataset=Train_source, batch_size=args.batch_size, shuffle=True, generator=g)
-    g = torch.Generator()
-    target_loader = da.DataLoader(dataset=Train_target, batch_size=args.batch_size, shuffle=True, generator=g)
-    g = torch.Generator()
-    target_loader_test = da.DataLoader(dataset=Train_target, batch_size=args.batch_size, shuffle=True, generator=g)
+    # g = torch.Generator()
+    source_loader = da.DataLoader(dataset=Train_source, batch_size=args.batch_size, shuffle=True)
+    # g = torch.Generator()
+    target_loader = da.DataLoader(dataset=Train_target, batch_size=args.batch_size, shuffle=True)
+    # g = torch.Generator()
+    target_loader_test = da.DataLoader(dataset=Train_target, batch_size=args.batch_size, shuffle=False)
 
     model = DDTLN().to(device)
     criterion = nn.CrossEntropyLoss()
